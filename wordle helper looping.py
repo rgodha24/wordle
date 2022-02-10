@@ -183,16 +183,14 @@ while True:
     # now we have to generate the best word to put in next with this list.
         
     print(f"currently there are {len(possibleAnswers)} possible answers. finding the best one now")
-    if len(possibleAnswers)>10: 
+    if len(possibleAnswers)>5: 
 
         added = [0,0,0,0,0]
         bestWord = ''
         tryWord = ""
         bestAdded = 1000
         start = time.time()
-        for i in tqdm(range(100000)):
-            if time.time() > start + 20:
-                break
+        for i in tqdm(range(int(min(len(possibleAnswers)*4000, 100000)))):
             tryWord = ''
             for i in range(len(added)):
                 added[i] = randint(0,5) 
@@ -211,10 +209,17 @@ while True:
 
         if len(bestWord) != 0:
             print(f"try {bestWord}!")
+        elif len(possibleAnswers) != 0 and len(bestWord) == 0:
+            print("pain it failed")
+            bestWord = possibleAnswers[randint(0, len(possibleAnswers))]
+            print(f"{bestWord} is a random one it failed tho lol sry")
+            print(greens, yellows, greys, cantBe, triedList)
+            
         else:
             print("pain it failed")
             print(greens, yellows, greys, cantBe, triedList)
             break
+            
         
     else: 
         best = 100
@@ -275,7 +280,7 @@ while True:
                     print(f"popped {bestWord[answerInt]} out of yellowsn")
                     
             elif answerX == "2":
-                if bestWord[answerInt] not in greens and bestWord[answerInt] not in yellows:
+                if bestWord[answerInt] not in greens and bestWord[answerInt] not in yellows and bestWord[answerInt] not in greys:
                     greys.append(bestWord[answerInt])
                     
             else:
