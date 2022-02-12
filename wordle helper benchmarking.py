@@ -71,7 +71,7 @@ greenWeight = 50
 
 for wordleAnswerInt in tqdm(range(loopNumber),):
     greens = [None, None, None, None, None]
-    wordleAnswer = choice(answers)
+    wordleAnswer = answers[wordleAnswerInt]
     yellows = []
     greys = []
     cantBe = []
@@ -185,17 +185,13 @@ for wordleAnswerInt in tqdm(range(loopNumber),):
         
         newLetterList = letterList.copy()
         
-        for i in range(5):
-            for k in range(26):
-                newLetterList[i][k] = int(int((letterList[0][k] + letterList[1][k] + letterList[2][k] + letterList[3][k] +letterList[4][k]) * yellowWeight/5) + letterList[i][k] * greenWeight)
-            
-        
+        '''
         # redoing greens with just yellow
         for i, j in enumerate(greens):
             if j != None:
                 for k in range(26):
                     newLetterList[i][k] = letterList[0][k] + letterList[1][k] + letterList[2][k] + letterList[3][k] + letterList[4][k] 
-        
+        '''
         
                     
         letterList = newLetterList.copy()
@@ -224,24 +220,24 @@ for wordleAnswerInt in tqdm(range(loopNumber),):
             bestWord = ''
             tryWord = ""
             bestAdded = 1000
-            start = time.time()
-            for i in (range(int(min(len(possibleAnswers)*4000, 100000)))):
-                tryWord = ''
-                for i in range(len(added)):
-                    added[i] = randint(0,4)
-                tryAdded = sum(added)    
-                
-                
-                
-                if tryAdded < bestAdded:
-                    for i in range(5):
-                        tryWord += letterRanks[i][added[i]]
-                    if tryWord in ok:
-                        if tryAdded < bestAdded:
-                            bestWord = tryWord
-                            bestAdded = tryAdded
-                            # print("found a better word!")
-                            # print(bestAdded)
+            for aaa in (range(5)):
+                for bbb in range(5):
+                    for ccc in range(5):
+                        for ddd in range(5):
+                            for eee in range(5):
+                                added = [aaa, bbb, ccc, ddd, eee]
+                                tryWord = ''
+                                tryAdded = sum(added)    
+                                
+                                for k in range(5):
+                                    tryWord += letterRanks[k][added[k]]
+                                if tryAdded < bestAdded:
+                                    if tryWord in ok:
+                                        if tryAdded < bestAdded:
+                                            bestWord = tryWord
+                                            bestAdded = tryAdded
+                                            # print("found a better word!")
+                                            # print(bestAdded)
 
             if len(bestWord) != 0:
                 pass

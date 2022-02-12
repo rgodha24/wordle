@@ -156,13 +156,13 @@ while True:
     # print(letterList)
 
     # if it is green, making it so that it has the sum of all of the others to make it more efficient
-    newLetterList = letterList.copy()
+    ''' newLetterList = letterList.copy()
     for i, j in enumerate(greens):
         if j != None:
             for k in range(26):
                 newLetterList[i][k] = letterList[i][0] + letterList[i][1] + letterList[i][2] + letterList[i][3] + letterList[i][4] 
                 
-    letterList = newLetterList.copy()
+    letterList = newLetterList.copy()'''
 
     ranks = []
     for i in range(5):
@@ -189,23 +189,24 @@ while True:
         bestWord = ''
         tryWord = ""
         bestAdded = 1000
-        start = time.time()
-        for i in tqdm(range(int(min(len(possibleAnswers)*4000, 100000)))):
-            tryWord = ''
-            for i in range(len(added)):
-                added[i] = randint(0,5) 
-            tryAdded = sum(added)    
-            
-            
-            for i in range(5):
-                tryWord += letterRanks[i][added[i]]
-            if tryAdded < bestAdded:
-                if tryWord in ok:
-                    if tryAdded < bestAdded:
-                        bestWord = tryWord
-                        bestAdded = tryAdded
-                        # print("found a better word!")
-                        # print(bestAdded)
+        for aaa in tqdm(range(5)):
+            for bbb in range(5):
+                for ccc in range(5):
+                    for ddd in range(5):
+                        for eee in range(5):
+                            added = [aaa, bbb, ccc, ddd, eee]
+                            tryWord = ''
+                            tryAdded = sum(added)    
+                            
+                            for k in range(5):
+                                tryWord += letterRanks[k][added[k]]
+                            if tryAdded < bestAdded:
+                                if tryWord in ok:
+                                    if tryAdded < bestAdded:
+                                        bestWord = tryWord
+                                        bestAdded = tryAdded
+                                        # print("found a better word!")
+                                        # print(bestAdded)
 
         if len(bestWord) != 0:
             print(f"try {bestWord}!")
