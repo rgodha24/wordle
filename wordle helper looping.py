@@ -1,16 +1,17 @@
-from audioop import reverse
-from copy import error
 import json
 from random import randint
 from numpy import mean 
 from tqdm import tqdm as tqdm
-import time
 
 with open("answers.json") as answerJson:
     answers = json.load(answerJson)
     
 with open("ok.json") as okJson:
     ok = json.load(okJson)
+    
+with open("guesses count.json") as guessesJsonFile:
+    guesses = json.load(guessesJsonFile)
+    print(f"current average guesses taken is {mean(guesses)}")
     
 def betterIndex(list, finding):
     outputList = []
@@ -19,10 +20,6 @@ def betterIndex(list, finding):
             outputList.append(i)
             
     return outputList
-
-with open("guesses count.json") as guessesJsonFile:
-    guesses = json.load(guessesJsonFile)
-    print(f"current average guesses taken is {mean(guesses)}")
 
 def rank(ausdhb):
     list = ausdhb.copy()
@@ -47,23 +44,10 @@ def rank(ausdhb):
     # print(list)
     return x
 
-greens = [None, None, None, None, None]
-yellows = []
-greys = []
-cantBe = []
-guesses = 0
-for i in range(5):
-    cantBe.append([])
-triedList = []
-while True:
-   
-    
-    #finding the best word to put in
-    # ranking the letters (copied from best starting word)
-
-
-    # checking if greens are ok
+def getPossibleAnswers(answers, greens, yellows, greys, cantBe, triedList):
+        
     possibleAnswers = []
+    # checking if greens are ok
     for answerInt, answerX in enumerate(answers):
         fine = True
         for letterInt, letter in enumerate(answerX):
@@ -73,10 +57,8 @@ while True:
                     
         if fine:
             possibleAnswers.append(answerX)
-            
-    # print(len(possibleAnswers))
+    
     # checking yellows
-
     if len(yellows) != 0:
         popList = []
         for answerInt, answerX in enumerate(possibleAnswers):
@@ -93,7 +75,7 @@ while True:
                 possibleAnswers.pop(bad)
             except:
                 print(f"pop failed LLLLLLL {bad}. on yellows")
-            
+                
     if len(greys) != 0:
         popList = [] #indexes of bad ones
         for answerInt, answerX in enumerate(possibleAnswers):
@@ -107,9 +89,7 @@ while True:
                 possibleAnswers.pop(bad)
             except:
                 print(f"pop failed LLLLLLL {bad}. on greys")
-
-        # print(len(possibleAnswers))
-        
+                    
     if len(cantBe) != 0:
         popList = []
         for answerInt, answerX in enumerate(possibleAnswers):
@@ -125,10 +105,7 @@ while True:
                 possibleAnswers.pop(bad)
             except:
                 print(f"pop failed LLLLLLL {bad}. on cant bes")
-                # print(len(possibleAnswers))
-        
-        # print(len(possibleAnswers))
-        
+                    
     if len(triedList) != 0:
         popList = []
         for answerInt, answerX in enumerate(possibleAnswers):
@@ -140,7 +117,10 @@ while True:
                 possibleAnswers.pop(bad)
             except:
                 print(f"pop failed LLLLLLL {bad}. on tried list")
+            
+    return possibleAnswers
 
+def getLetterList(possibleAnswers, yellowWeight, greenWeight):
     letterList = []
     x = []
     for q in range(26):
@@ -155,15 +135,21 @@ while True:
             
     # print(letterList)
 
-    # if it is green, making it so that it has the sum of all of the others to make it more efficient
-    ''' newLetterList = letterList.copy()
+    
+    newLetterList = letterList.copy()
+    
+    
+    # redoing greens with just yellow
     for i, j in enumerate(greens):
         if j != None:
             for k in range(26):
-                newLetterList[i][k] = letterList[i][0] + letterList[i][1] + letterList[i][2] + letterList[i][3] + letterList[i][4] 
+                newLetterList[i][k] = int((letterList[i][0] + letterList[i][1] + letterList[i][2] + letterList[i][3] + letterList[i][4])*yellowWeight/5) + int(letterList[i][k]*greenWeight)
+    
+    
                 
-    letterList = newLetterList.copy()'''
-
+    return newLetterList
+   
+def getLetterRanks(letterList):
     ranks = []
     for i in range(5):
         ranks.append(rank(letterList[i]))
@@ -178,9 +164,38 @@ while True:
                 print("one of them failed lol awef jnaow pain")
             
         letterRanks.append(o)
+        
+    return letterRanks
+    
+def getWeights(): # returns yellowWeight, greenWeight
+    with open("weights.json") as weightsJson:
+        x = json.load(weightsJson)
 
-    # letter ranks is now a rank of the best letter for each part of the word. 
-    # now we have to generate the best word to put in next with this list.
+    return x["yellowWeight"], x["greenWeight"]    
+
+greens = [None, None, None, None, None]
+yellows = []
+greys = []
+cantBe = []
+guesses = 0
+for i in range(5):
+    cantBe.append([])
+triedList = []
+yellowWeight, greenWeight = getWeights()
+
+while True:
+   
+    # possible answers is a list of all of all of the wordle answers that are possibly left, taking into account
+    # greens, yellows, greys, cantBe (letters that were yellow, so cant be in that spot again), and all of the words already tried
+    possibleAnswers = getPossibleAnswers(answers, greens, yellows, greys, cantBe, triedList)
+
+    # letterList is a count of the frequency of a letter in the possible answer list. it also allows for a weighting of yellows and greens. 
+    letterList = getLetterList(possibleAnswers, yellowWeight, greenWeight)
+
+    # letter ranks is letterList, but instead of letterList[0][0] being the amount of A's in the first letter, 
+    # letter ranks[0][0] is the most common first letter. 
+    letterRanks = getLetterRanks(letterList)
+            
         
     print(f"currently there are {len(possibleAnswers)} possible answers. finding the best one now")
     if len(possibleAnswers)>5: 

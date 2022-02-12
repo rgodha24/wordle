@@ -61,158 +61,168 @@ def checkWord(correctAnswer, word, ):
                 answerLetters.pop(answerLetters.index(word[i]))
                 
         return output
+    
+def getPossibleAnswers(answers, greens, yellows, greys, cantBe, triedList):
+    
+    possibleAnswers = []
+    # checking if greens are ok
+    for answerInt, answerX in enumerate(answers):
+        fine = True
+        for letterInt, letter in enumerate(answerX):
+            if greens[letterInt] != None:
+                if greens[letterInt] != letter:
+                    fine = False
+                    
+        if fine:
+            possibleAnswers.append(answerX)
+    
+    # checking yellows
+    if len(yellows) != 0:
+        popList = []
+        for answerInt, answerX in enumerate(possibleAnswers):
+            a = []
+            for letterInt, letterX in enumerate(answerX):
+                if letterX in yellows:
+                    a.append(True)
+            
+            if len(a) != len(yellows):
+                popList.append(answerInt)
+                
+        for bad in reversed(popList):
+            try:
+                possibleAnswers.pop(bad)
+            except:
+                print(f"pop failed LLLLLLL {bad}. on yellows")
+                
+    if len(greys) != 0:
+        popList = [] #indexes of bad ones
+        for answerInt, answerX in enumerate(possibleAnswers):
+            for letterInt, letterX in enumerate(answerX):
+                if letterX in greys:
+                    popList.append(answerInt)
+                    break
+                    
+        for bad in reversed(popList):
+            try:
+                possibleAnswers.pop(bad)
+            except:
+                print(f"pop failed LLLLLLL {bad}. on greys")
+                    
+    if len(cantBe) != 0:
+        popList = []
+        for answerInt, answerX in enumerate(possibleAnswers):
+            for letterInt, letterX in enumerate(answerX):
+                if len(cantBe[letterInt]) != 0:
+                    if letterX in cantBe[letterInt]:
+                        if answerInt not in popList:
+                            popList.append(answerInt)
+        
+        # print((popList))
+        for bad in reversed(popList):
+            try:
+                possibleAnswers.pop(bad)
+            except:
+                print(f"pop failed LLLLLLL {bad}. on cant bes")
+                    
+    if len(triedList) != 0:
+        popList = []
+        for answerInt, answerX in enumerate(possibleAnswers):
+            if answerX in triedList:
+                popList.append(answerInt)
+                
+        for bad in reversed(popList):
+            try:
+                possibleAnswers.pop(bad)
+            except:
+                print(f"pop failed LLLLLLL {bad}. on tried list")
+            
+    return possibleAnswers
 
+def getLetterList(possibleAnswers, yellowWeight, greenWeight):
+    letterList = []
+    x = []
+    for q in range(26):
+        x.append(0)
+        
+    for w in range(5):
+        letterList.append(x.copy())
+
+    for j, k in enumerate(possibleAnswers):
+        for letterNumber, letter in enumerate(k):
+            letterList[letterNumber][ord(letter)-97] += 1
+            
+    # print(letterList)
+
+    
+    newLetterList = letterList.copy()
+    
+    
+    # redoing greens with just yellow
+    for i, j in enumerate(greens):
+        if j != None:
+            for k in range(26):
+                newLetterList[i][k] = int((letterList[i][0] + letterList[i][1] + letterList[i][2] + letterList[i][3] + letterList[i][4])*yellowWeight/5) + int(letterList[i][k]*greenWeight)
+    
+    
+                
+    return newLetterList
+   
+def getLetterRanks(letterList):
+    ranks = []
+    for i in range(5):
+        ranks.append(rank(letterList[i]))
+        
+    letterRanks = []
+    for i in ranks:
+        o = []
+        for j in i:
+            try:
+                o.append(chr(j+97))
+            except:
+                print("one of them failed lol awef jnaow pain")
+            
+        letterRanks.append(o)
+        
+    return letterRanks
+    
+def getWeights(): # returns yellowWeight, greenWeight
+    with open("weights.json") as weightsJson:
+        x = json.load(weightsJson)
+
+    return x["yellowWeight"], x["greenWeight"]
+  
 benchmarkList = []
 
-loopNumber = int(input("how many loops do you want?"))
+print(f"the max length of the benchmark is {len(answers)}")
+loopNumber = int(input("how many loops do you want?: ").strip())
 
-yellowWeight = 1
-greenWeight = 50
+yellowWeight, greenWeight = getWeights()
 
 for wordleAnswerInt in tqdm(range(loopNumber),):
-    greens = [None, None, None, None, None]
-    wordleAnswer = answers[wordleAnswerInt]
-    yellows = []
-    greys = []
-    cantBe = []
-    guesses = 0
-    for i in range(5):
-        cantBe.append([])
-    triedList = []
     
-    
+    # defining everything that has to be reset with every new word being inputted. 
+    if True:
+        greens = [None, None, None, None, None]
+        wordleAnswer = answers[wordleAnswerInt]
+        yellows = []
+        greys = []
+        cantBe = []
+        guesses = 0
+        for i in range(5):
+            cantBe.append([])
+        triedList = []
     
     while True:
-        
-        
-        #finding the best word to put in
-        # ranking the letters (copied from best starting word)
+        # possible answers is a list of all of all of the wordle answers that are possibly left, taking into account
+        # greens, yellows, greys, cantBe (letters that were yellow, so cant be in that spot again), and all of the words already tried
+        possibleAnswers = getPossibleAnswers(answers, greens, yellows, greys, cantBe, triedList)
 
+        # letterList is a count of the frequency of a letter in the possible answer list. it also allows for a weighting of yellows and greens. 
+        letterList = getLetterList(possibleAnswers, yellowWeight, greenWeight)
 
-        # checking if greens are ok
-        possibleAnswers = []
-        for answerInt, answerX in enumerate(answers):
-            fine = True
-            for letterInt, letter in enumerate(answerX):
-                if greens[letterInt] != None:
-                    if greens[letterInt] != letter:
-                        fine = False
-                        
-            if fine:
-                possibleAnswers.append(answerX)
-                
-        # print(len(possibleAnswers))
-        # checking yellows
-
-        if len(yellows) != 0:
-            popList = []
-            for answerInt, answerX in enumerate(possibleAnswers):
-                a = []
-                for letterInt, letterX in enumerate(answerX):
-                    if letterX in yellows:
-                        a.append(True)
-                
-                if len(a) != len(yellows):
-                    popList.append(answerInt)
-                    
-            for bad in reversed(popList):
-                try:
-                    possibleAnswers.pop(bad)
-                except:
-                    print(f"pop failed LLLLLLL {bad}. on yellows")
-                
-        if len(greys) != 0:
-            popList = [] #indexes of bad ones
-            for answerInt, answerX in enumerate(possibleAnswers):
-                for letterInt, letterX in enumerate(answerX):
-                    if letterX in greys:
-                        popList.append(answerInt)
-                        break
-                        
-            for bad in reversed(popList):
-                try:
-                    possibleAnswers.pop(bad)
-                except:
-                    print(f"pop failed LLLLLLL {bad}. on greys")
-
-            # print(len(possibleAnswers))
-            
-        if len(cantBe) != 0:
-            popList = []
-            for answerInt, answerX in enumerate(possibleAnswers):
-                for letterInt, letterX in enumerate(answerX):
-                    if len(cantBe[letterInt]) != 0:
-                        if letterX in cantBe[letterInt]:
-                            if answerInt not in popList:
-                                popList.append(answerInt)
-            
-            # print((popList))
-            for bad in reversed(popList):
-                try:
-                    possibleAnswers.pop(bad)
-                except:
-                    print(f"pop failed LLLLLLL {bad}. on cant bes")
-                    # print(len(possibleAnswers))
-            
-            # print(len(possibleAnswers))
-            
-        if len(triedList) != 0:
-            popList = []
-            for answerInt, answerX in enumerate(possibleAnswers):
-                if answerX in triedList:
-                    popList.append(answerInt)
-                    
-            for bad in reversed(popList):
-                try:
-                    possibleAnswers.pop(bad)
-                except:
-                    print(f"pop failed LLLLLLL {bad}. on tried list")
-
-        letterList = []
-        x = []
-        for q in range(26):
-            x.append(0)
-            
-        for w in range(5):
-            letterList.append(x.copy())
-
-        for j, k in enumerate(possibleAnswers):
-            for letterNumber, letter in enumerate(k):
-                letterList[letterNumber][ord(letter)-97] += 1
-                
-        # print(letterList)
-
-        
-        newLetterList = letterList.copy()
-        
-        '''
-        # redoing greens with just yellow
-        for i, j in enumerate(greens):
-            if j != None:
-                for k in range(26):
-                    newLetterList[i][k] = letterList[0][k] + letterList[1][k] + letterList[2][k] + letterList[3][k] + letterList[4][k] 
-        '''
-        
-                    
-        letterList = newLetterList.copy()
-
-        ranks = []
-        for i in range(5):
-            ranks.append(rank(letterList[i]))
-            
-        letterRanks = []
-        for i in ranks:
-            o = []
-            for j in i:
-                try:
-                    o.append(chr(j+97))
-                except:
-                    print("one of them failed lol awef jnaow pain")
-                
-            letterRanks.append(o)
-
-        # letter ranks is now a rank of the best letter for each part of the word. 
-        # now we have to generate the best word to put in next with this list.
+        # letter ranks is letterList, but instead of letterList[0][0] being the amount of A's in the first letter, 
+        # letter ranks[0][0] is the most common first letter. 
+        letterRanks = getLetterRanks(letterList)
             
         if len(possibleAnswers)>5: 
 
