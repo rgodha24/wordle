@@ -1,1 +1,2 @@
 with 45 yellow 1 green, double answers ignored, 3.917 over whole thing. 
+45 yellow 1 green, double answers += .1, 3.875 whole thing

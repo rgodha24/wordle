@@ -191,9 +191,18 @@ def getWeights(): # returns yellowWeight, greenWeight
 
     return x["yellowWeight"], x["greenWeight"]
   
+def fixDoubleLetters(word):
+    wordList = list(word)
+    output = 0
+    for i, j in enumerate(wordList):
+        if wordList.index(j) != i:
+            output += .1
+            
+    return output
+
 benchmarkList = []
 
-print(f"the max length of the benchmark is {len(answers)}")
+
 loopNumber = int(input("how many loops do you want?: ").strip())
 
 yellowWeight, greenWeight = getWeights()
@@ -241,6 +250,8 @@ for wordleAnswerInt in tqdm(range(loopNumber),):
                                 
                                 for k in range(5):
                                     tryWord += letterRanks[k][added[k]]
+                                    
+                                tryAdded += fixDoubleLetters(tryWord)
                                 if tryAdded < bestAdded:
                                     if tryWord in ok:
                                         if tryAdded < bestAdded:
@@ -329,4 +340,4 @@ for wordleAnswerInt in tqdm(range(loopNumber),):
                         
             # print(greens, yellows, greys, cantBe, triedList)
             
-print(f"{round(mean(benchmarkList), 3)} is the average number of guesses it takes with a random input of {loopNumber} answers")
+print(f"{round(mean(benchmarkList), 3)} is the average number of guesses it takes with an input of {loopNumber} answers")

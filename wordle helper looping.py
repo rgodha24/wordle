@@ -173,6 +173,15 @@ def getWeights(): # returns yellowWeight, greenWeight
 
     return x["yellowWeight"], x["greenWeight"]    
 
+def fixDoubleLetters(word):
+    wordList = list(word)
+    output = 0
+    for i, j in enumerate(wordList):
+        if wordList.index(j) != i:
+            output += .1
+            
+    return output
+
 greens = [None, None, None, None, None]
 yellows = []
 greys = []
@@ -211,10 +220,12 @@ while True:
                         for eee in range(5):
                             added = [aaa, bbb, ccc, ddd, eee]
                             tryWord = ''
-                            tryAdded = sum(added)    
+                            tryAdded = sum(added)
                             
                             for k in range(5):
                                 tryWord += letterRanks[k][added[k]]
+                                
+                            tryAdded += fixDoubleLetters(tryWord)
                             if tryAdded < bestAdded:
                                 if tryWord in ok:
                                     if tryAdded < bestAdded:
